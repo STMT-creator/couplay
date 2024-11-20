@@ -1,0 +1,14 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "백엔드 자바스크립트 서버 네트워크 실습",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "STMT",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.1"
+  }
+}
