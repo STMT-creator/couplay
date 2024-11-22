@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "description": "백엔드 자바스크립트 서버 네트워크 실습",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node index.js"
+    "dev": "nodemon ./index.js"
   },
   "author": "STMT",
   "license": "ISC",
   "dependencies": {
     "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
   }
 }
