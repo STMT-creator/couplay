@@ -4,7 +4,8 @@
   "description": "백엔드 자바스크립트 서버 네트워크 실습",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node index.js"
   },
   "author": "STMT",
   "license": "ISC",
