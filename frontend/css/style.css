@@ -23,5 +23,6 @@
 
 .menu {
     text-align: center;
-    font-size: 13px;
+    font-size: 20px;
+    text-transform: capitalize;
 }
