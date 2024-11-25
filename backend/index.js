@@ -33,35 +33,40 @@ async function run() {
 }
 run().catch((err) => console.log(err));
 
-const userSchema = new mongoose.Schema({
-  role: {
-    type: String
+const userSchema = new mongoose.Schema(
+  {
+    role: {
+      type: String,
+    },
+    id: {
+      type: String,
+      unique: true,
+      minlength: 8,
+      lowercase: true,
+      required: true,
+    },
+    pwd: {
+      type: String,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: Number,
+    },
+    sms: {
+      type: String,
+      enum: ["y", "n"],
+    },
+    email: {
+      type: String,
+      trim: true,
+    },
   },
-  id: {
-    type: String,
-    length: 8,
-    lowercase: true
-  },
-  pwd: {
-    type: String,
-    maxlength: 12
-  },
-  name: {
-    type: String,
-    required: true
-  },
-  phone: {
-    type: Number
-  },
-  sms: {
-    type: String,
-    enum: ["1", "0"]
-  },
-  email: {
-    type: String,
-    trim: true
-  },
-}, {timestamps: true});
+  { timestamps: true }
+);
 
 const User = mongoose.model("User", userSchema);
 
@@ -86,27 +91,28 @@ app.post("/signup", (req, res) => {
       user_name,
       user_phone,
       user_sms,
-      user_email
+      user_email,
     } = req.body;
     bcrypt.hash(user_pwd, saltRounds, async function (err, hash) {
       console.log("해싱처리된 암호 :", hash);
-    const user = await User.create({
-      role: user_type,
-      id: user_id,
-      pwd: user_pwd,
-      name: user_name,
-      phone: user_phone,
-      sms: user_sms,
-      email: user_email
-    })
-  });
-  if (!User) {
-    throw new Error("사용자 생성 실패!");
-  } res.status(200).json(User);
-} catch (err) {
-  console.log(err)
-  // throw new Error("회원가입 오류!");
-} 
+      const user = await User.create({
+        role: user_type,
+        id: user_id,
+        pwd: hash,
+        name: user_name,
+        phone: user_phone,
+        sms: user_sms,
+        email: user_email,
+      });
+      if (!user) {
+        throw new Error("사용자 생성 실패!");
+      }
+      res.status(200).json(user);
+    });
+  } catch (err) {
+    console.log(err);
+    // throw new Error("회원가입 오류!");
+  }
 });
 
 app.post("/signin", (req, res) => {
