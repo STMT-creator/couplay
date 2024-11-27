@@ -1,6 +1,7 @@
 import express from "express";
 import { type } from "os";
 import path, { dirname } from "path";
+import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,6 +71,7 @@ const userSchema = new mongoose.Schema(
 
 const User = mongoose.model("User", userSchema);
 
+app.use(cookieParser("secrectString")); // 쿠키 굽기
 app.use(express.static("public")); //'public' 자리에 폴더나 파일을 찾는다.
 app.use(express.json()); //요청 바디 분석
 app.use(express.urlencoded({ extended: true }));
@@ -103,11 +105,19 @@ app.post("/signup", (req, res) => {
         phone: user_phone,
         sms: user_sms,
         email: user_email,
-      });
+      }); console.log(user);
       if (!user) {
         throw new Error("사용자 생성 실패!");
       }
-      res.status(200).json(user);
+      // res.status(200).json({
+      //   status: "ok",
+      //   message: "회원가입 완료",
+      // });
+      // 회원가입 성공하면, 현재 회원의 ID 등의 정보를 cookie로 저장해서 client에 전송
+      // client가 server에 요청(request)할 때 쿠키 정보를 http header에 담아서
+      res.send(
+        '<script>alert("회원가입 성공, 로그인 페이지로 이동합니다.");location.href="/";</script>'
+      );
     });
   } catch (err) {
     console.log(err);
@@ -115,9 +125,57 @@ app.post("/signup", (req, res) => {
   }
 });
 
-app.post("/signin", (req, res) => {
-  res.send("/signin 페이지를 보고 계십니다.");
+app.post("/signin", async (req, res) => {
+  try {
+    const { user_id, user_pwd } = req.body;
+    const foundUser = await User.find({ id: user_id });
+    if (!foundUser) {
+      res.status(401).json({
+        status: 'fail',
+        message: "사용자가 존재하지 않습니다."
+      })
+    }
+    const match = await bcrypt.compare(user_pwd, foundUser[0].pwd)
+    if(match) {
+      // 로그인 성공 쿠키 : 사용자 ID, 이름 등의 로그인 정보들 기록
+      const loginInfo = JSON.stringify({
+        login_id: foundUser[0].id,
+        user_name: foundUser[0].name,
+        user_email: foundUser[0].email,
+        user_createdAt: foundUser[0].createdAt
+      })
+      res.cookie('login_user', foundUser[0].id, {
+        httpOnly: true,
+        maxAge: 60000, // 1000분의 1 초로 계산 따라서 60,000은 60초로 1분 후 쿠키 삭제
+        path: '/'
+      })
+      res.status(200).json({
+        status: 'success',
+        message: '로그인 성공'
+      })
+    } else {
+      res.status(200).json({
+        status: 'fail',
+        message: '로그인 실패'
+      })
+    }
+    // res.send("/signin 페이지를 보고 계십니다.");
+  } catch (err) {
+    console.log(err);
+  }
 });
+
+app.get("/bucket", (req, res) => {
+  if (req.cookies.login_user) {
+      console.log(req.cookies.login_user);
+      res.send("쿠키정보가 존재합니다.")
+  } else {
+    res.status(401).json({
+      status: "fail",
+      message: "로그인이 필요합니다."
+    })
+  }
+})
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
